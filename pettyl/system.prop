@@ -37,6 +37,7 @@ persist.vendor.camera.display.lmax=1280x720
 persist.vendor.camera.display.umax=1920x1080
 
 # Display
+ro.sf.lcd_density=280
 debug.egl.hw=1
 debug.sf.enable_hwc_vds=1
 debug.sf.hw=1
@@ -71,7 +72,7 @@ persist.rild.nitz_short_ons_2=
 persist.rild.nitz_short_ons_3=
 ril.subscription.types=NV,RUIM
 rild.libargs=-d /dev/smd0
-rild.libpath=/system/vendor/lib/libril-qc-qmi-1.so
+rild.libpath=/vendor/lib/libril-qc-qmi-1.so
 telephony.lteOnCdmaDevice=1
 
 # Wi-Fi
@@ -143,3 +144,5 @@ voice.conc.fallbackpath=deep-buffer
 voice.playback.conc.disabled=true
 voice.record.conc.disabled=false
 voice.voip.conc.disabled=true
+ro.config.low_ram=true
+
