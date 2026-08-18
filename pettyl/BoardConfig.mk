@@ -47,6 +47,7 @@ BOARD_KERNEL_OFFSET := 0x00008000
 BOARD_RAMDISK_OFFSET := 0x01000000
 BOARD_TAGS_OFFSET := 0x00000100
 
+BOARD_KERNEL_CMDLINE += skip_initramfs
 # VITAL: --header_version 0 fuerza el formato legacy boot.img
 BOARD_MKBOOTIMG_ARGS := --kernel_offset $(BOARD_KERNEL_OFFSET) \
                         --ramdisk_offset $(BOARD_RAMDISK_OFFSET) \
