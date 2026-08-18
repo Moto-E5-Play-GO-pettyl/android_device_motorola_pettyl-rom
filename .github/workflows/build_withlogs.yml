@@ -85,7 +85,7 @@ jobs:
       - name: Clonar y organizar repositorios de pettyl y vendor
         run: |
           cd /home/runner/android/lineage
-          git clone https://github.com/elmendezz/android_device_motorola_pettyl-rom -b lineage-17.1 /tmp/pettyl_unified
+          git clone https://github.com/Moto-E5-Play-GO-pettyl/android_device_motorola_pettyl-rom -b lineage-17.1 /tmp/pettyl_unified
           mkdir -p device/motorola/pettyl
           mkdir -p vendor/motorola/pettyl
           cp -r /tmp/pettyl_unified/pettyl/* device/motorola/pettyl/
