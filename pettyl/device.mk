@@ -87,6 +87,15 @@ PRODUCT_SOONG_NAMESPACES += \
 # Inherit the proprietary files
 $(call inherit-product, vendor/motorola/pettyl/pettyl-vendor.mk)
 
+# Properties
+TARGET_PRODUCT_PROP := $(LOCAL_PATH)/system.prop
+
+# Low RAM / Android Go optimizations
+$(call inherit-product, build/make/target/product/go_defaults.mk)
+
+# Dalvik heap configuration for 1GB RAM
+$(call inherit-product, frameworks/native/build/phone-xhdpi-1024-dalvik-heap.mk)
+
 # =================================================================
 # =================================================================
 # =================================================================
