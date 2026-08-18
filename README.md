@@ -88,6 +88,9 @@ Para compilar LineageOS 17.1 para este dispositivo, debes configurar tu espacio 
 
 ---
 
+# We need you’re help please join to our telegram channel 
+
+[Telegram Link](https://t.me/motoe5playgodev)
 ## License & Copyright
 * Copyright (C) 2019 - 2026: The LineageOS Project.
 * Device Maintainer: elmendezz (https://github.com/elmendezz)
