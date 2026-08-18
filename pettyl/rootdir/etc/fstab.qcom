@@ -1,8 +1,8 @@
 # <src>                                      <mnt_point>  <type>   <mnt_flags and options>                            <fs_mgr_flags>
 /dev/block/bootdevice/by-name/boot           /boot        emmc     defaults                                           defaults
 /dev/block/bootdevice/by-name/recovery       /recovery    emmc     defaults                                           defaults
-/dev/block/bootdevice/by-name/system         /system      ext4     ro,relatime,discard,barrier=1                      wait
-/dev/block/bootdevice/by-name/vendor         /vendor      ext4     ro,relatime,discard,barrier=1                      wait
+/dev/block/bootdevice/by-name/system         /system      ext4     ro,relatime,discard,barrier=1                      wait,first_stage_mount
+/dev/block/bootdevice/by-name/vendor         /vendor      ext4     ro,relatime,discard,barrier=1                      wait,first_stage_mount
 /dev/block/bootdevice/by-name/userdata       /data        f2fs     rw,discard,nosuid,nodev,noatime,nodiratime,nobarrier,inline_xattr,inline_data    wait,check,formattable,fileencryption=ice,quota
 /dev/block/bootdevice/by-name/misc           /misc        emmc     defaults                                           defaults
 /dev/block/bootdevice/by-name/cache          /cache       ext4     rw,noatime,nosuid,nodev,barrier=1,data=ordered      wait,check,formattable
