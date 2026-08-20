@@ -18,6 +18,7 @@ jobs:
       - name: Ejecutar Script de Compilación
         run: |
           chmod +x setupwork.sh
+          export TERM=xterm
           ./setupwork.sh
 
       - name: Subir como Artifacts de GitHub
