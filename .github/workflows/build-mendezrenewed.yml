@@ -25,61 +25,164 @@ jobs:
 
       - name: Purgar paquetes innecesarios manualmente
         run: |
-          sudo apt-get clean
-          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d/*
-          sudo docker system prune -af
+          echo "=== LIMPIEZA DEL SISTEMA ==="
 
-      - name: Clonar repositorio unificado de pettyl y ejecutar setupwork.sh
+          sudo apt-get clean
+
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /etc/mysql
+          sudo rm -rf /etc/php
+          sudo rm -rf /etc/apt/sources.list.d/*
+
+          sudo docker system prune -af || true
+
+          echo
+          echo "=== ESPACIO DISPONIBLE ==="
+          df -h
+
+      - name: Preparar directorio de trabajo
         run: |
-          echo "Clonando repositorio unificado..."
-          git clone https://github.com/Moto-E5-Play-GO-pettyl/android_device_motorola_pettyl-rom /tmp/pettyl_unified
-          
-          echo "Dando permisos de ejecución a setupwork.sh..."
-          chmod +x /tmp/pettyl_unified/setupwork.sh
-          
-          echo "Ejecutando setupwork.sh..."
+          echo "=== PREPARANDO /tmp/pettyl_unified ==="
+
+          if [ -d "/tmp/pettyl_unified" ]; then
+            echo "El directorio ya existe. Eliminándolo..."
+            rm -rf /tmp/pettyl_unified
+          fi
+
+          mkdir -p /tmp/pettyl_unified
+
+          echo "Directorio preparado:"
+          ls -la /tmp
+
+      - name: Clonar repositorio unificado de pettyl
+        run: |
+          echo "=== CLONANDO REPOSITORIO ==="
+
+          git clone \
+            --depth=1 \
+            https://github.com/Moto-E5-Play-GO-pettyl/android_device_motorola_pettyl-rom \
+            /tmp/pettyl_unified
+
+          echo
+          echo "=== REPOSITORIO CLONADO ==="
+          ls -lah /tmp/pettyl_unified
+
+      - name: Preparar setupwork.sh
+        run: |
           cd /tmp/pettyl_unified
+
+          echo "=== VERIFICANDO setupwork.sh ==="
+
+          if [ ! -f "./setupwork.sh" ]; then
+            echo "ERROR: No existe setupwork.sh"
+            echo
+            echo "Contenido del repositorio:"
+            find . -maxdepth 2 -type f | sort
+            exit 1
+          fi
+
+          chmod +x ./setupwork.sh
+
+          echo "Permisos:"
+          ls -l ./setupwork.sh
+
+      - name: Ejecutar setupwork.sh
+        run: |
+          cd /tmp/pettyl_unified
+
           export TERM=xterm
+          export DEBIAN_FRONTEND=noninteractive
+
+          echo "============================================"
+          echo " INICIANDO SETUPWORK.SH"
+          echo "============================================"
+          echo "PWD: $(pwd)"
+          echo "TERM: $TERM"
+          echo
+
           ./setupwork.sh
 
-      - name: Rescatar Logs e Imágenes (Se ejecuta aunque falle)
+      - name: Rescatar Logs e Imágenes
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Archivos-Rescatados-Pettyl
+          if-no-files-found: warn
+          retention-days: 5
           path: |
             /home/runner/android/lineage/build_log.txt
             /home/runner/android/lineage/out/target/product/pettyl/*.img
             /home/runner/android/lineage/out/target/product/pettyl/*.zip
-          retention-days: 5
+
+      - name: Mostrar información de diagnóstico si falla
+        if: failure()
+        run: |
+          echo "============================================"
+          echo " DIAGNÓSTICO DE FALLA"
+          echo "============================================"
+
+          echo
+          echo "=== ESPACIO EN DISCO ==="
+          df -h
+
+          echo
+          echo "=== /tmp/pettyl_unified ==="
+          if [ -d "/tmp/pettyl_unified" ]; then
+            ls -lah /tmp/pettyl_unified
+          else
+            echo "No existe /tmp/pettyl_unified"
+          fi
+
+          echo
+          echo "=== BUILD LOG ==="
+          if [ -f "/home/runner/android/lineage/build_log.txt" ]; then
+            echo "Últimas 100 líneas:"
+            tail -n 100 /home/runner/android/lineage/build_log.txt
+          else
+            echo "No existe build_log.txt"
+          fi
 
       - name: Crear Issue si la compilación falla
         if: failure()
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Generando reporte de error..."
-          
+
           if [ -f /home/runner/android/lineage/build_log.txt ]; then
-            tail -n 200 /home/runner/android/lineage/build_log.txt > error_snippet.txt
+            tail -n 200 \
+              /home/runner/android/lineage/build_log.txt \
+              > error_snippet.txt
           else
-            echo "No se encontró el archivo build_log.txt. Revisa los logs de la consola de GitHub Actions." > error_snippet.txt
+            echo "No se encontró build_log.txt." > error_snippet.txt
+            echo "Revisa los logs de GitHub Actions." >> error_snippet.txt
           fi
-          
-          cat << 'EOF' > issue_body.md
+
+          cat > issue_body.md << 'EOF'
           ## 🚨 La compilación de LineageOS ha fallado
-          
-          La ejecución del workflow no pudo terminar la ROM. Revisa los artefactos subidos para descargar el archivo `build_log.txt` completo.
-          
-          ### Últimas 200 líneas del log:
+
+          La ejecución del workflow no pudo terminar la ROM.
+
+          Los artefactos de esta ejecución contienen los archivos disponibles
+          de diagnóstico y compilación.
+
+          ### Últimas 200 líneas del log
+
           ```text
           EOF
-          
+
           cat error_snippet.txt >> issue_body.md
-          echo '```' >> issue_body.md
-          
-          FECHA=$(date +'%Y-%m-%d %H:%M')
-          
+
+          cat >> issue_body.md << 'EOF'
+          ```
+
+          ### Información adicional
+
+          El workflow fue ejecutado mediante `workflow_dispatch`.
+          EOF
+
+          FECHA=$(date +'%Y-%m-%d %H:%M:%S')
+
           gh issue create \
             --title "🚨 Build Failed: Revisar logs ($FECHA)" \
             --body-file issue_body.md
