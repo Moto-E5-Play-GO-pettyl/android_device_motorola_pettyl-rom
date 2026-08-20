@@ -39,7 +39,7 @@ jobs:
           
           echo "Ejecutando setupwork.sh..."
           cd /tmp/pettyl_unified
-          ./setupwork.sh
+          export TERM=xterm ./setupwork.sh
 
       - name: Rescatar Logs e Imágenes (Se ejecuta aunque falle)
         if: always()
