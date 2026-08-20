@@ -131,7 +131,7 @@ lunch lineage_pettyl-userdebug
 CPUS=$(nproc --all)
 info "Tienes ${CPUS} núcleos de CPU. Se iniciará la compilación con 'mka bacon -j${CPUS}'."
 warn "La compilación puede tardar varias horas. El progreso se mostrará aquí y se guardará en 'build_log.txt'."
-
+export UNSAFE_DISABLE_HIDDENAPI_FLAGS=true
 mka bacon -j${CPUS} 2>&1 | tee build_log.txt
 BUILD_STATUS=${PIPESTATUS[0]}
 
