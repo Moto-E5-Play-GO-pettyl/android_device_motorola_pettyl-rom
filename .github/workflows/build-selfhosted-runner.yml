@@ -1,4 +1,4 @@
-name: Compilar y Publicar ROM
+name: Compilar y Publicar ROM - Self Hosted
 
 on:
   push:
