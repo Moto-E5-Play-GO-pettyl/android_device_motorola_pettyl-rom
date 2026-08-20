@@ -53,7 +53,7 @@ info "FASE 1: Configurando el entorno de compilación..."
 
 info "Instalando dependencias del sistema con 'apt'. Se requerirá tu contraseña de sudo."
 sudo apt-get update
-sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python2 python3
+sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python2 python3 git-lfs
 sudo ln -sf /usr/bin/python2 /usr/bin/python
 success "Dependencias instaladas."
 
