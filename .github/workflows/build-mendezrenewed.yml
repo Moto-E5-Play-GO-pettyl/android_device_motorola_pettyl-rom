@@ -1,0 +1,84 @@
+name: Build LineageOS 17.1 for pettyl - setupwork
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Compilar ROM con setupwork.sh
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout del repositorio actual
+        uses: actions/checkout@v4
+
+      - name: Limpieza BRUTAL de espacio en disco
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
+      - name: Purgar paquetes innecesarios manualmente
+        run: |
+          sudo apt-get clean
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d/*
+          sudo docker system prune -af
+
+      - name: Clonar repositorio unificado de pettyl y ejecutar setupwork.sh
+        run: |
+          echo "Clonando repositorio unificado..."
+          git clone https://github.com/Moto-E5-Play-GO-pettyl/android_device_motorola_pettyl-rom /tmp/pettyl_unified
+          
+          echo "Dando permisos de ejecución a setupwork.sh..."
+          chmod +x /tmp/pettyl_unified/setupwork.sh
+          
+          echo "Ejecutando setupwork.sh..."
+          cd /tmp/pettyl_unified
+          ./setupwork.sh
+
+      - name: Rescatar Logs e Imágenes (Se ejecuta aunque falle)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Archivos-Rescatados-Pettyl
+          path: |
+            /home/runner/android/lineage/build_log.txt
+            /home/runner/android/lineage/out/target/product/pettyl/*.img
+            /home/runner/android/lineage/out/target/product/pettyl/*.zip
+          retention-days: 5
+
+      - name: Crear Issue si la compilación falla
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Generando reporte de error..."
+          
+          if [ -f /home/runner/android/lineage/build_log.txt ]; then
+            tail -n 200 /home/runner/android/lineage/build_log.txt > error_snippet.txt
+          else
+            echo "No se encontró el archivo build_log.txt. Revisa los logs de la consola de GitHub Actions." > error_snippet.txt
+          fi
+          
+          cat << 'EOF' > issue_body.md
+          ## 🚨 La compilación de LineageOS ha fallado
+          
+          La ejecución del workflow no pudo terminar la ROM. Revisa los artefactos subidos para descargar el archivo `build_log.txt` completo.
+          
+          ### Últimas 200 líneas del log:
+          ```text
+          EOF
+          
+          cat error_snippet.txt >> issue_body.md
+          echo '```' >> issue_body.md
+          
+          FECHA=$(date +'%Y-%m-%d %H:%M')
+          
+          gh issue create \
+            --title "🚨 Build Failed: Revisar logs ($FECHA)" \
+            --body-file issue_body.md
