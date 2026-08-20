@@ -1,0 +1,43 @@
+name: Compilar y Publicar ROM
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Descargar / Actualizar Código
+        uses: actions/checkout@v4
+
+      - name: Ejecutar Script de Compilación
+        run: |
+          chmod +x setupwork.sh
+          ./setupwork.sh
+
+      - name: Subir como Artifacts de GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: Android-ROM-Build
+          path: |
+            *.zip
+            *.img
+            out/target/product/pettyl/*.zip
+          retention-days: 7
+
+      - name: Crear Release en GitHub
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Build Automático #${{ github.run_number }}
+          files: |
+            *.zip
+            out/target/product/pettyl/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
