@@ -98,7 +98,7 @@ info "FASE 3: Clonando y organizando los repositorios del dispositivo 'pettyl'..
 cd "${ANDROID_TOP_DIR}"
 
 git clone https://github.com/elmendezz/android_device_motorola_pettyl-rom -b lineage-17.1 /tmp/pettyl_unified
-git lfs pull
+git -C /tmp/pettyl_unified lfs pull
 mkdir -p device/motorola/pettyl
 mkdir -p vendor/motorola/pettyl
 
