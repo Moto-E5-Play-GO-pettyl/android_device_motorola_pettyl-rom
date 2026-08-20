@@ -40,65 +40,28 @@ jobs:
           echo "=== ESPACIO DISPONIBLE ==="
           df -h
 
-      - name: Preparar directorio de trabajo
+      - name: Preparar y ejecutar setupwork.sh
         run: |
-          echo "=== PREPARANDO /tmp/pettyl_unified ==="
-
-          if [ -d "/tmp/pettyl_unified" ]; then
-            echo "El directorio ya existe. Eliminándolo..."
-            rm -rf /tmp/pettyl_unified
-          fi
-
-          mkdir -p /tmp/pettyl_unified
-
-          echo "Directorio preparado:"
-          ls -la /tmp
-
-      - name: Clonar repositorio unificado de pettyl
-        run: |
-          echo "=== CLONANDO REPOSITORIO ==="
-
-          git clone \
-            --depth=1 \
-            https://github.com/Moto-E5-Play-GO-pettyl/android_device_motorola_pettyl-rom \
-            /tmp/pettyl_unified
-
-          echo
-          echo "=== REPOSITORIO CLONADO ==="
-          ls -lah /tmp/pettyl_unified
-
-      - name: Preparar setupwork.sh
-        run: |
-          cd /tmp/pettyl_unified
-
-          echo "=== VERIFICANDO setupwork.sh ==="
-
-          if [ ! -f "./setupwork.sh" ]; then
-            echo "ERROR: No existe setupwork.sh"
-            echo
-            echo "Contenido del repositorio:"
-            find . -maxdepth 2 -type f | sort
-            exit 1
-          fi
+          echo "============================================"
+          echo " PREPARANDO SETUPWORK"
+          echo "============================================"
 
           chmod +x ./setupwork.sh
 
-          echo "Permisos:"
-          ls -l ./setupwork.sh
+          echo
+          echo "Ubicación:"
+          pwd
 
-      - name: Ejecutar setupwork.sh
-        run: |
-          cd /tmp/pettyl_unified
+          echo
+          echo "Contenido del repositorio:"
+          ls -lah
+
+          echo
+          echo "Ejecutando setupwork.sh..."
+          echo
 
           export TERM=xterm
           export DEBIAN_FRONTEND=noninteractive
-
-          echo "============================================"
-          echo " INICIANDO SETUPWORK.SH"
-          echo "============================================"
-          echo "PWD: $(pwd)"
-          echo "TERM: $TERM"
-          echo
 
           ./setupwork.sh
 
@@ -107,14 +70,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Archivos-Rescatados-Pettyl
-          if-no-files-found: warn
           retention-days: 5
+          if-no-files-found: warn
           path: |
             /home/runner/android/lineage/build_log.txt
             /home/runner/android/lineage/out/target/product/pettyl/*.img
             /home/runner/android/lineage/out/target/product/pettyl/*.zip
 
-      - name: Mostrar información de diagnóstico si falla
+      - name: Diagnóstico si la compilación falla
         if: failure()
         run: |
           echo "============================================"
@@ -126,21 +89,22 @@ jobs:
           df -h
 
           echo
-          echo "=== /tmp/pettyl_unified ==="
-          if [ -d "/tmp/pettyl_unified" ]; then
-            ls -lah /tmp/pettyl_unified
-          else
-            echo "No existe /tmp/pettyl_unified"
-          fi
+          echo "=== MEMORIA ==="
+          free -h || true
 
           echo
           echo "=== BUILD LOG ==="
-          if [ -f "/home/runner/android/lineage/build_log.txt" ]; then
-            echo "Últimas 100 líneas:"
-            tail -n 100 /home/runner/android/lineage/build_log.txt
+
+          if [ -f /home/runner/android/lineage/build_log.txt ]; then
+            echo "Últimas 200 líneas:"
+            tail -n 200 /home/runner/android/lineage/build_log.txt
           else
-            echo "No existe build_log.txt"
+            echo "No se encontró build_log.txt."
           fi
+
+          echo
+          echo "=== CONTENIDO DE /tmp ==="
+          ls -lah /tmp || true
 
       - name: Crear Issue si la compilación falla
         if: failure()
@@ -154,8 +118,10 @@ jobs:
               /home/runner/android/lineage/build_log.txt \
               > error_snippet.txt
           else
-            echo "No se encontró build_log.txt." > error_snippet.txt
-            echo "Revisa los logs de GitHub Actions." >> error_snippet.txt
+            echo "No se encontró el archivo build_log.txt." \
+              > error_snippet.txt
+            echo "Revisa los logs de GitHub Actions." \
+              >> error_snippet.txt
           fi
 
           cat > issue_body.md << 'EOF'
@@ -163,8 +129,8 @@ jobs:
 
           La ejecución del workflow no pudo terminar la ROM.
 
-          Los artefactos de esta ejecución contienen los archivos disponibles
-          de diagnóstico y compilación.
+          Los artefactos de esta ejecución contienen los archivos
+          disponibles de diagnóstico y compilación.
 
           ### Últimas 200 líneas del log
 
@@ -176,9 +142,9 @@ jobs:
           cat >> issue_body.md << 'EOF'
           ```
 
-          ### Información adicional
+          ### Información
 
-          El workflow fue ejecutado mediante `workflow_dispatch`.
+          Workflow ejecutado mediante `workflow_dispatch`.
           EOF
 
           FECHA=$(date +'%Y-%m-%d %H:%M:%S')
